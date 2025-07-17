@@ -81,16 +81,16 @@
     .sidebar {
       width: 240px;
       background-color: #000;
-      padding: 35px 20px 20px 20px;
+      padding: 30px 20px 20px 20px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 8px;
       box-shadow: 3px 0 8px rgba(0, 0, 0, 0.3);
     }
     .sidebar .file-label, .sidebar button {
       text-decoration: none;
       font-size: 16px;
-      padding: 10px;
+      padding: 8px;
       border: none;
       background: transparent;
       color: #fff;
@@ -114,12 +114,32 @@
       text-align: center;
       font-size: 14px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      margin-top: 10px;
+      margin-top: 8px;
     }
+/* ========================= */
+/* Layout para card “dual”   */
+/* ========================= */
+.summary-card.dual {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px; /* igual às outras cards */
+}
+.summary-card.dual .summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* separador visual entre as metades */
+.summary-card.dual .summary-item:first-child {
+  border-right: 1px solid rgba(255,255,255,0.3);
+}
+/* ajuste o espaçamento interno se desejar */
+
     .summary-number {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: bold;
-      margin-top: 5px;
+      margin-top: 4px;
       color: #ffc107;
     }
 
@@ -303,7 +323,22 @@ th {
       <div class="summary-card">
         Diferença
         <div class="summary-number" id="differenceLabel">00:00:00</div>
+      <div class="summary-card dual">
+      <div class="summary-item">
+        Total Picked
+        <div class="summary-number" id="totalPickedLabel">0</div>
       </div>
+      <div class="summary-item">
+        Avg. Picked
+        <div class="summary-number" id="avgPickedLabel">0.00</div>
+      </div>
+    </div>
+
+    <!-- 2) Card único: Avg. Performance -->
+    <div class="summary-card">
+      Avg. Performance
+      <div class="summary-number" id="avgPerformanceLabel">0.00%</div>
+    </div>
     </nav>
 
     <!-- Main Content -->
@@ -534,27 +569,57 @@ th {
      * Atualização das Estatísticas
      * ====================================================== */
     function updateStats(dataMap) {
-      let sumWorkedHours = 0;
-      let sumProdHours = 0;
+  let sumWorkedHours = 0;
+  let sumProdHours = 0;
+  let totalPicked = 0;
 
-      Object.values(dataMap).forEach(stats => {
-        const totalHoursSec = timeToSeconds(stats.totalHours);
-        sumWorkedHours += totalHoursSec / 3600;
-        const neededHours = stats.qty / trackerTarget;
-        sumProdHours += neededHours;
-      });
+  // Acumula horas trabalhadas, horas produtivas e total de picks
+  Object.values(dataMap).forEach(stats => {
+    const hoursDecimal = timeToSeconds(stats.totalHours) / 3600;
+    sumWorkedHours += hoursDecimal;
+    sumProdHours += stats.qty / trackerTarget;
+    totalPicked += stats.qty;
+  });
 
-      const difference = sumWorkedHours - sumProdHours;
+  // Cálculo da diferença entre horas trabalhadas e horas produtivas
+  const difference = sumWorkedHours - sumProdHours;
 
-      document.getElementById('twhLabel').textContent = formatDecimalToTime(sumWorkedHours);
-      document.getElementById('prodHoursLabel').textContent = formatDecimalToTime(sumProdHours);
-      document.getElementById('differenceLabel').textContent = formatDecimalToTime(difference);
+  // Atualiza labels existentes
+  document.getElementById('twhLabel').textContent = formatDecimalToTime(sumWorkedHours);
+  document.getElementById('prodHoursLabel').textContent = formatDecimalToTime(sumProdHours);
+  document.getElementById('differenceLabel').textContent = formatDecimalToTime(difference);
 
-      const totalUsers = Object.keys(dataMap).length;
-      document.getElementById('userCountLabel').textContent = totalUsers;
-      const lostDecimal = difference / 7.5;
-      document.getElementById('userLostLabel').textContent = lostDecimal.toFixed(2);
-    }
+  // Total de usuários e User ID Lost
+  const totalUsers = Object.keys(dataMap).length;
+  document.getElementById('userCountLabel').textContent = totalUsers;
+  const lostDecimal = difference / 7.5;
+  document.getElementById('userLostLabel').textContent = lostDecimal.toFixed(2);
+
+  // ===== Novos cálculos =====
+
+  // 1) Total Picked
+  document.getElementById('totalPickedLabel').textContent = totalPicked;
+
+  // 2) Avg. Picked: totalPicked dividido por sumWorkedHours (unidades/hora)
+  const avgPickedPerHour = sumWorkedHours > 0
+    ? (totalPicked / sumWorkedHours)
+    : 0;
+  document.getElementById('avgPickedLabel').textContent = avgPickedPerHour.toFixed(0);
+
+  // 3) Avg. Performance: média dos percentuais individuais
+  let sumPerformance = 0;
+  Object.values(dataMap).forEach(stats => {
+    const hours = timeToSeconds(stats.totalHours) / 3600;
+    const perf = hours > 0
+      ? (stats.qty / (hours * trackerTarget)) * 100
+      : 0;
+    sumPerformance += perf;
+  });
+  const avgPerformance = totalUsers > 0
+    ? (sumPerformance / totalUsers)
+    : 0;
+  document.getElementById('avgPerformanceLabel').textContent = avgPerformance.toFixed(2) + '%';
+}
 
     /* ======================================================
      * Função de Filtragem para a Aba Home
