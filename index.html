@@ -814,26 +814,25 @@ th {
           const totalHoursDecimal = calculateSecondsDifference(data.inTime, data.outTime) / 3600;
           data.totalHours = formatDecimalToTime(totalHoursDecimal);
 
-          if (totalHoursDecimal <= 0) {
-            data.performance = "No Activity (0.00%)";
-            data.performanceClass = "performance-no-activity";
-          } else {
-            const performance = data.qty > 0 ? (data.qty / (totalHoursDecimal * trackerTarget)) * 100 : 0;
-            if (performance >= 100) {
-              data.performance = `Well Done (${performance.toFixed(2)}%)`;
-              data.performanceClass = "performance-well-done";
-            } else if (performance >= 85) {
-              data.performance = `Almost There (${performance.toFixed(2)}%)`;
-              data.performanceClass = "performance-almost-there";
-            } else if (performance > 0) {
-              data.performance = `Poor (${performance.toFixed(2)}%)`;
-              data.performanceClass = "performance-poor";
-            } else {
-              data.performance = "No Activity (0.00%)";
-              data.performanceClass = "performance-no-activity";
-            }
-          }
-        });
+          // cálculo do percentual de performance (0 se não houver horas válidas)
+const performance = data.qty > 0
+  ? (data.qty / (totalHoursDecimal * trackerTarget)) * 100
+  : 0;
+
+if (totalHoursDecimal <= 0 || performance === 0) {
+  data.performance      = "No Activity (0.00%)";
+  data.performanceClass = "performance-no-activity";
+} else if (performance >= 100) {
+  data.performance      = `Well Done (${performance.toFixed(2)}%)`;
+  data.performanceClass = "performance-well-done";
+} else if (performance >= 60 && performance < 100) {
+  data.performance      = `Almost There (${performance.toFixed(2)}%)`;
+  data.performanceClass = "performance-almost-there";
+} else {
+  data.performance      = `Poor (${performance.toFixed(2)}%)`;
+  data.performanceClass = "performance-poor";
+}
+  });
 
         localStorage.setItem('onlinePickData', JSON.stringify(dataMap));
         updateTable(dataMap);
