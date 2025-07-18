@@ -962,26 +962,44 @@ if (totalHoursDecimal <= 0 || performance === 0) {
         }
       });
       
-      const gapsHeader = ['Date', 'User ID', 'Location IN', 'Location OUT', 'In Time', 'Out Time', 'Gap Time', 'Gap #'];
-      const gapsData = [gapsHeader.slice()];
-      Object.entries(dataMap).forEach(([userId, stats]) => {
-        if (stats.nGaps > 0 && stats.gapsList && stats.gapsList.length > 0) {
-          stats.gapsList.forEach((gapObj, index) => {
-            const gapTimeFormatted = formatDecimalToTime(gapObj.gapSec / 3600);
-            const row = [
-              stats.date,
-              userId,
-              gapObj.locationIn || '',
-              gapObj.locationOut || '',
-              gapObj.start,
-              gapObj.end,
-              gapTimeFormatted,
-              index + 1
-            ];
-            gapsData.push(row);
-          });
-        }
-      });
+      
+// 1) Atualiza o cabeçalho para incluir "Same Floor?"
+const gapsHeader = [
+  'Date',
+  'User ID',
+  'Location IN',
+  'Location OUT',
+  'In Time',
+  'Out Time',
+  'Gap Time',
+  'Gap #',
+  'Same Floor?'
+];
+const gapsData = [gapsHeader.slice()];
+
+Object.entries(dataMap).forEach(([userId, stats]) => {
+  if (stats.nGaps > 0 && stats.gapsList && stats.gapsList.length > 0) {
+    stats.gapsList.forEach((gapObj, index) => {
+      const gapTimeFormatted = formatDecimalToTime(gapObj.gapSec / 3600);
+      const sameFloorFlag = gapObj.sameFloor ? 'Yes' : 'No';
+
+      // 2) Monta a linha incluindo o valor de Same Floor? no final
+      const row = [
+        stats.date,
+        userId,
+        gapObj.locationIn || '',
+        gapObj.locationOut || '',
+        gapObj.start,
+        gapObj.end,
+        gapTimeFormatted,
+        index + 1,
+        sameFloorFlag
+      ];
+      gapsData.push(row);
+    });
+  }
+});
+
 
       const workbook = XLSX.utils.book_new();
       const wsAll = XLSX.utils.aoa_to_sheet(allData);
