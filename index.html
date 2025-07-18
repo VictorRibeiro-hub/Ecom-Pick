@@ -265,6 +265,16 @@ th {
       background-color: #000;
       z-index: 2;
     }
+/* Gaps no mesmo piso */
+.gap-same-floor td {
+  background-color: #d4edda;
+}
+
+/* Gaps entre pisos */
+.gap-cross-floor td {
+  background-color: #f8d7da;
+}
+
   </style>
 </head>
 <body>
@@ -321,7 +331,7 @@ th {
         <div class="summary-number" id="prodHoursLabel">00:00:00</div>
       </div>
       <div class="summary-card">
-        Diferença
+        Difference
         <div class="summary-number" id="differenceLabel">00:00:00</div>
       <div class="summary-card dual">
       <div class="summary-item">
@@ -487,7 +497,28 @@ th {
       }
       return date;
     }
+  
+ // ==== Novo: mapeia prefixo de location para floor ====
+    function getFloor(location) {
+      if (!location) return null;
+      const loc = location.toUpperCase().trim();
 
+      // casos com prefixo de várias letras
+      if (loc.startsWith('DROP'))   return 'ground';
+      if (loc.startsWith('CONSOL')) return 'ground';
+
+      // prefixo de 1 letra
+      const letter = loc.charAt(0);
+      const floorMap = {
+        X: 'ground', Z: 'ground', A: 'ground',
+        E: 'ground', P: 'ground', F: 'ground',
+        B: 'bFloor', V: 'bFloor',
+        D: 'dFloor', C: 'dFloor',
+        T: 'tFloor', H: 'tFloor'
+      };
+      return floorMap[letter] || 'unknown';
+    }
+    // ==== fim getFloor ====
     /* ======================================================
      * Funções de Troca de Aba
      * ====================================================== */
@@ -541,29 +572,33 @@ th {
      * Atualização da Tabela Gaps
      * ====================================================== */
     function updateGapsTable(dataMap) {
-      const gapsTableBody = document.querySelector('#gapsTable tbody');
-      gapsTableBody.innerHTML = '';
-      
-      Object.entries(dataMap).forEach(([userId, stats]) => {
-        if (stats.nGaps > 0 && stats.gapsList && stats.gapsList.length > 0) {
-          stats.gapsList.forEach((gapObj, index) => {
-            const gapTimeFormatted = formatDecimalToTime(gapObj.gapSec / 3600);
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${stats.date || ''}</td>
-              <td>${userId}</td>
-              <td>${gapObj.locationIn || ''}</td>
-              <td>${gapObj.locationOut || ''}</td>
-              <td>${gapObj.start || 'N/A'}</td>
-              <td>${gapObj.end || 'N/A'}</td>
-              <td>${gapTimeFormatted}</td>
-              <td>${index + 1}</td>
-            `;
-            gapsTableBody.appendChild(row);
-          });
-        }
+  const gapsTableBody = document.querySelector('#gapsTable tbody');
+  gapsTableBody.innerHTML = '';
+  
+  Object.entries(dataMap).forEach(([userId, stats]) => {
+    if (stats.nGaps > 0 && stats.gapsList && stats.gapsList.length > 0) {
+      stats.gapsList.forEach((gapObj, index) => {
+        const gapTimeFormatted = formatDecimalToTime(gapObj.gapSec / 3600);
+
+        // cria a linha e aplica a classe correta
+        const row = document.createElement('tr');
+        row.classList.add(gapObj.sameFloor ? 'gap-same-floor' : 'gap-cross-floor');
+
+        row.innerHTML = `
+          <td>${stats.date || ''}</td>
+          <td>${userId}</td>
+          <td>${gapObj.locationIn || ''}</td>
+          <td>${gapObj.locationOut || ''}</td>
+          <td>${gapObj.start || 'N/A'}</td>
+          <td>${gapObj.end || 'N/A'}</td>
+          <td>${gapTimeFormatted}</td>
+          <td>${index + 1}</td>
+        `;
+        gapsTableBody.appendChild(row);
       });
     }
+  });
+}
 
     /* ======================================================
      * Atualização das Estatísticas
@@ -581,7 +616,7 @@ th {
     totalPicked += stats.qty;
   });
 
-  // Cálculo da diferença entre horas trabalhadas e horas produtivas
+  // Cálculo da difference entre horas trabalhadas e horas produtivas
   const difference = sumWorkedHours - sumProdHours;
 
   // Atualiza labels existentes
@@ -789,21 +824,34 @@ th {
             const prev = prevObj.time;
             const curr = currObj.time;
             const diffSec = calculateSecondsDifference(prev, curr);
-            const gapHours = diffSec / 3600;
-            const intermediate = userAll.some(ev => ev.time > prev && ev.time < curr);
-            if (gapHours >= 0.0833 && !intermediate) {
-              dataMap[userId].totalGaps += gapHours;
-              dataMap[userId].nGaps += 1;
-              dataMap[userId].gapsList.push({ 
-                gapSec: diffSec, 
-                start: prev, 
-                end: curr, 
-                locationIn: prevObj.location, 
-                locationOut: currObj.location 
-              });
-            }
-          }
-        });
+const gapHours = diffSec / 3600;
+const intermediate = userAll.some(ev => ev.time > prev && ev.time < curr);
+
+// identifica pisos
+const prevFloor = getFloor(prevObj.location);
+const currFloor = getFloor(currObj.location);
+const sameFloor = prevFloor && currFloor && (prevFloor === currFloor);
+
+// define threshold: 5 min no mesmo piso, 10 min entre pisos
+const thresholdMin = sameFloor ? 5 : 10;
+const thresholdHours = thresholdMin / 60;
+
+// aplica threshold dinâmico
+if (gapHours >= thresholdHours && !intermediate) {
+  dataMap[userId].totalGaps += gapHours;
+  dataMap[userId].nGaps += 1;
+  dataMap[userId].gapsList.push({
+  gapSec: diffSec,
+  start: prev,
+  end: curr,
+  locationIn: prevObj.location,
+  locationOut: currObj.location,
+ sameFloor: sameFloor    // marca se é no mesmo piso
+});
+
+}
+ }
+  });
 
         Object.keys(dataMap).forEach(userId => {
           const data = dataMap[userId];
