@@ -578,24 +578,41 @@ th {
   Object.entries(dataMap).forEach(([userId, stats]) => {
     if (stats.nGaps > 0 && stats.gapsList && stats.gapsList.length > 0) {
       stats.gapsList.forEach((gapObj, index) => {
-        const gapTimeFormatted = formatDecimalToTime(gapObj.gapSec / 3600);
+  const gapTimeFormatted = formatDecimalToTime(gapObj.gapSec / 3600);
+  const gapMinutes = gapObj.gapSec / 60;
 
-        // cria a linha e aplica a classe correta
-        const row = document.createElement('tr');
-        row.classList.add(gapObj.sameFloor ? 'gap-same-floor' : 'gap-cross-floor');
+  // cria a linha e aplica a classe correta de background
+  const row = document.createElement('tr');
+  row.classList.add(gapObj.sameFloor ? 'gap-same-floor' : 'gap-cross-floor');
 
-        row.innerHTML = `
-          <td>${stats.date || ''}</td>
-          <td>${userId}</td>
-          <td>${gapObj.locationIn || ''}</td>
-          <td>${gapObj.locationOut || ''}</td>
-          <td>${gapObj.start || 'N/A'}</td>
-          <td>${gapObj.end || 'N/A'}</td>
-          <td>${gapTimeFormatted}</td>
-          <td>${index + 1}</td>
-        `;
-        gapsTableBody.appendChild(row);
-      });
+  row.innerHTML = `
+    <td>${stats.date || ''}</td>
+    <td>${userId}</td>
+    <td>${gapObj.locationIn || ''}</td>
+    <td>${gapObj.locationOut || ''}</td>
+    <td>${gapObj.start || 'N/A'}</td>
+    <td>${gapObj.end || 'N/A'}</td>
+    <td>${gapTimeFormatted}</td>
+    <td>${index + 1}</td>
+  `;
+
+  // formata em bold/vermelho se ultrapassar os thresholds
+  const gapCell = row.querySelectorAll('td')[6];
+  if (gapObj.sameFloor) {
+    if (gapMinutes >= 7) {
+      gapCell.style.color = '#dc3545';
+      gapCell.style.fontWeight = 'bold';
+    }
+  } else {
+    if (gapMinutes >= 12) {
+      gapCell.style.color = '#dc3545';
+      gapCell.style.fontWeight = 'bold';
+    }
+  }
+
+  gapsTableBody.appendChild(row);
+});
+
     }
   });
 }
