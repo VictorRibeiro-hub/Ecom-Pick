@@ -418,18 +418,23 @@ th {
         <!-- Aba Gaps -->
         <div id="gapsTabContent" style="display: none;">
           <table id="gapsTable">
-            <thead>
-              <tr>
-                <th style="width: 100px;">Date</th>
-                <th>User ID</th>
-                <th>Location IN</th>
-                <th>Location OUT</th>
-                <th>In Time</th>
-                <th>Out Time</th>
-                <th>Gap Time</th>
-                <th>Gap #</th>
-              </tr>
-            </thead>
+           <!-- Aba Gaps (trecho original) -->
+      <!-- Aba Gaps (trecho atualizado) -->
+<thead>
+  <tr>
+    <th style="width: 100px;">Date</th>
+    <th>User ID</th>
+    <th>Location IN</th>
+    <th>Location OUT</th>
+    <th>In Time</th>
+    <th>Out Time</th>
+    <th>Gap Time</th>
+    <th>Gap #</th>
+    <th>Same Floor?</th>
+  </tr>
+</thead>
+
+
             <tbody>
               <!-- Linhas dinâmicas geradas pela lógica -->
             </tbody>
@@ -585,16 +590,17 @@ th {
   const row = document.createElement('tr');
   row.classList.add(gapObj.sameFloor ? 'gap-same-floor' : 'gap-cross-floor');
 
-  row.innerHTML = `
-    <td>${stats.date || ''}</td>
-    <td>${userId}</td>
-    <td>${gapObj.locationIn || ''}</td>
-    <td>${gapObj.locationOut || ''}</td>
-    <td>${gapObj.start || 'N/A'}</td>
-    <td>${gapObj.end || 'N/A'}</td>
-    <td>${gapTimeFormatted}</td>
-    <td>${index + 1}</td>
-  `;
+   row.innerHTML = `
+  <td>${stats.date || ''}</td>
+  <td>${userId}</td>
+  <td>${gapObj.locationIn || ''}</td>
+  <td>${gapObj.locationOut || ''}</td>
+  <td>${gapObj.start || 'N/A'}</td>
+  <td>${gapObj.end || 'N/A'}</td>
+  <td>${gapTimeFormatted}</td>
+  <td>${index + 1}</td>
+  <td>${gapObj.sameFloor ? 'Yes' : 'No'}</td>
+`;
 
   // formata em bold/vermelho se ultrapassar os thresholds
   const gapCell = row.querySelectorAll('td')[6];
