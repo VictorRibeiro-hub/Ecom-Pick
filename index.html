@@ -1059,9 +1059,9 @@ Object.entries(dataMap).forEach(([userId, stats]) => {
 
 <script>
   // 1) Inicializa o cliente e expõe no window
-  const SUPABASE_URL = 'https://rairvmuszzwnjicglzbp.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhaXJ2bXVzenp3bmppY2dsemJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMDcxNTYsImV4cCI6MjA3MjU4MzE1Nn0.zLc8ELkBmxLwzfqCxYqt7znB_n6znv4KIzlYfa3TMCI';
-  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SB_URL = 'https://rairvmuszzwnjicglzbp.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhaXJ2bXVzenp3bmppY2dsemJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMDcxNTYsImV4cCI6MjA3MjU4MzE1Nn0.zLc8ELkBmxLwzfqCxYqt7znB_n6znv4KIzlYfa3TMCI';
+ window.sb = supabase.createClient(SB_URL, SB_ANON);
 
   // 2) Helpers rápidos (usam tuas funções já existentes)
   function toHHMMSSfromSeconds(sec){ return formatDecimalToTime(sec/3600); }
