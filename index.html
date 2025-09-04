@@ -333,6 +333,7 @@ th {
       <div class="summary-card">
         Difference
         <div class="summary-number" id="differenceLabel">00:00:00</div>
+      </div>
       <div class="summary-card dual">
       <div class="summary-item">
         Total Picked
@@ -1053,5 +1054,98 @@ Object.entries(dataMap).forEach(([userId, stats]) => {
       });
     })();
   </script>
+<!-- SDK clássico: anexa em window.supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // 1) Inicializa o cliente e expõe no window
+  const SUPABASE_URL = 'https://rairvmuszzwnjicglzbp.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhaXJ2bXVzenp3bmppY2dsemJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMDcxNTYsImV4cCI6MjA3MjU4MzE1Nn0.zLc8ELkBmxLwzfqCxYqt7znB_n6znv4KIzlYfa3TMCI';
+  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // 2) Helpers rápidos (usam tuas funções já existentes)
+  function toHHMMSSfromSeconds(sec){ return formatDecimalToTime(sec/3600); }
+
+  function yyyymmddToDdMmYy(d){ if(!d)return''; const [y,m,dd]=String(d).split('-'); return `${dd}/${m}/${y}`; }
+
+  // 3) Carrega do Supabase e alimenta teu dataMap
+  async function loadFromSupabase(){
+    try {
+      // Summary
+      const { data: summary, error: e1 } = await window.sb
+        .from('online_picking_summary').select('*').order('user_id', { ascending: true });
+      if (e1) throw e1;
+
+      // Gaps
+      const { data: gaps, error: e2 } = await window.sb
+        .from('online_picking_gaps').select('*')
+        .order('user_id', { ascending: true }).order('gap_index', { ascending: true });
+      if (e2) throw e2;
+
+      // Indexa gaps por user
+      const gapsByUser = {};
+      for (const g of gaps || []) {
+        const u = g.user_id;
+        (gapsByUser[u] ||= []).push({
+          gapSec: g.gap_seconds || 0,
+          start: g.start_time || '',
+          end:   g.end_time || '',
+          locationIn:  g.location_in || '',
+          locationOut: g.location_out || '',
+          sameFloor: !!g.same_floor
+        });
+      }
+
+      // Monta dataMap no formato que o teu código já usa
+      const dataMap = {};
+      for (const s of summary || []) {
+        const userId = s.user_id;
+        const totalHoursDec = (s.total_hours_seconds || 0) / 3600;
+        const perfPct = Number(s.performance_pct || 0);
+
+        let performanceClass = 'performance-no-activity';
+        if (totalHoursDec > 0) {
+          if (perfPct >= 100) performanceClass = 'performance-well-done';
+          else if (perfPct >= 60) performanceClass = 'performance-almost-there';
+          else if (perfPct > 0)   performanceClass = 'performance-poor';
+        }
+
+        dataMap[userId] = {
+          qty: s.qty || 0,
+          inTime: s.in_time || null,
+          outTime: s.out_time || null,
+          totalHours: toHHMMSSfromSeconds(s.total_hours_seconds || 0),
+          performance: s.performance_label || `Poor (${perfPct.toFixed(2)}%)`,
+          performanceClass,
+          totalGaps: (s.total_gaps_seconds || 0) / 3600,
+          nGaps: s.n_gaps || 0,
+          date: yyyymmddToDdMmYy(s.date),
+          txnCount: s.txn_count || 0,
+          locationIn: '',
+          locationOut: '',
+          gapsList: gapsByUser[userId] || [],
+          hasMulti: (s.pick === 'Multi')
+        };
+      }
+
+      // Persiste e atualiza tua UI
+      localStorage.setItem('onlinePickData', JSON.stringify(dataMap));
+      if (window.updateTable && window.updateStats && window.updateGapsTable) {
+        window.updateTable(dataMap);
+        window.updateStats(dataMap);
+        window.updateGapsTable(dataMap);
+      }
+      return dataMap;
+    } catch (err) {
+      console.error('Falha ao carregar do Supabase:', err);
+      return null;
+    }
+  }
+
+  // 4) Expõe e chama
+  window.loadFromSupabase = loadFromSupabase;
+  loadFromSupabase();
+</script>
+
 </body>
 </html>
