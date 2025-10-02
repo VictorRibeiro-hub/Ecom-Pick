@@ -546,7 +546,7 @@ th {
 
             <!-- Top 5 Gaps -->
             <div style="flex: 1; min-width: 200px;">
-              <h4>Top 5 Em Gaps</h4>
+              <h4>Top 5 Gaps</h4>
               <table id="topGapsTable" class="dashboard-table">
                 <thead>
                   <tr>
@@ -1112,7 +1112,7 @@ function renderDashboardTables(dataMap) {
     .sort((a, b) => a.perfNum - b.perfNum)
     .slice(0, 5);
 
-  // Top 5 Em Gaps (maior gap)
+  // Top 5 Gaps (maior gap)
   const topGaps = [...users]
     .sort((a, b) => b.gapSec - a.gapSec)
     .slice(0, 5);
