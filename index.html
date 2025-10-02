@@ -6,11 +6,16 @@
   <title>Online Picking Productivity Tracker - Integrated Layout</title>
   
   <!-- SheetJS Library for Excel export -->
+    <!-- SheetJS Library for Excel export -->
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
-  <style>
+  <!-- Chart.js for dashboards -->
+  <!-- Chart.js for dashboards -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- DataLabels Plugin for Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
     /* Global Reset and Body Styling */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333; }
@@ -287,13 +292,16 @@ th {
     
     <!-- Botões de Navegação (Home e Gaps) na Top Bar -->
     <div class="tab-nav">
-      <button class="tab-btn" id="homeTabBtn" data-target="homeTabContent" title="Home">
-        <i class="fa fa-home"></i><span class="btn-text">Home</span>
-      </button>
-      <button class="tab-btn" id="gapsTabBtn" data-target="gapsTabContent" title="Gaps">
-        <i class="fa fa-chart-bar"></i><span class="btn-text">Gaps</span>
-      </button>
-    </div>
+  <button class="tab-btn" id="homeTabBtn" data-target="homeTabContent" title="Home">
+    <i class="fa fa-home"></i><span class="btn-text">Home</span>
+  </button>
+  <button class="tab-btn" id="gapsTabBtn" data-target="gapsTabContent" title="Gaps">
+    <i class="fa fa-chart-bar"></i><span class="btn-text">Gaps</span>
+  </button>
+  <button class="tab-btn" id="dashboardTabBtn" data-target="dashboardTabContent" title="Dashboard">
+    <i class="fa fa-chart-pie"></i><span class="btn-text">Dashboard</span>
+  </button>
+</div>
     
     <div class="user-info">Victor Ribeiro (DHL Supply Chain)</div>
   </div>
@@ -314,44 +322,45 @@ th {
       </button>
       
       <!-- Summary Cards (5 cards) -->
-      <div class="summary-card">
-        Total User IDs
-        <div class="summary-number" id="userCountLabel">0</div>
-      </div>
-      <div class="summary-card">
-        T. User ID Lost
-        <div class="summary-number" id="userLostLabel">0.00</div>
-      </div>
-      <div class="summary-card">
-        T.W.H
-        <div class="summary-number" id="twhLabel">00:00:00</div>
-      </div>
-      <div class="summary-card">
-        Prod. Hours
-        <div class="summary-number" id="prodHoursLabel">00:00:00</div>
-      </div>
-      <div class="summary-card">
-        Difference
-        <div class="summary-number" id="differenceLabel">00:00:00</div>
-      </div>
-      <div class="summary-card dual">
-      <div class="summary-item">
-        Total Picked
-        <div class="summary-number" id="totalPickedLabel">0</div>
-      </div>
-      <div class="summary-item">
-        Avg. Picked
-        <div class="summary-number" id="avgPickedLabel">0.00</div>
-      </div>
-    </div>
+<div class="summary-card">
+  Total User IDs
+  <div class="summary-number" id="userCountLabel">0</div>
+</div>
+<div class="summary-card">
+  T. User ID Lost
+  <div class="summary-number" id="userLostLabel">0.00</div>
+</div>
+<div class="summary-card">
+  T.W.H
+  <div class="summary-number" id="twhLabel">00:00:00</div>
+</div>
+<div class="summary-card">
+  Prod. Hours
+  <div class="summary-number" id="prodHoursLabel">00:00:00</div>
+</div>
+<div class="summary-card">
+  Difference
+  <div class="summary-number" id="differenceLabel">00:00:00</div>
+</div>
 
-    <!-- 2) Card único: Avg. Performance -->
-    <div class="summary-card">
-      Avg. Performance
-      <div class="summary-number" id="avgPerformanceLabel">0.00%</div>
-    </div>
-    </nav>
+<!-- Dual card: Total Picked & Avg. Picked -->
+<div class="summary-card dual">
+  <div class="summary-item">
+    Total Picked
+    <div class="summary-number" id="totalPickedLabel">0</div>
+  </div>
+  <div class="summary-item">
+    Avg. Picked
+    <div class="summary-number" id="avgPickedLabel">0.00</div>
+  </div>
+</div>
 
+<!-- 2) Card único: Avg. Performance -->
+<div class="summary-card">
+  Avg. Performance
+  <div class="summary-number" id="avgPerformanceLabel">0.00%</div>
+</div>
+</nav>
     <!-- Main Content -->
     <div class="main-content">
       <div class="content-area">
@@ -416,12 +425,10 @@ th {
           </table>
         </div>
 
-        <!-- Aba Gaps -->
+                        <!-- Aba Gaps -->
         <div id="gapsTabContent" style="display: none;">
           <table id="gapsTable">
-           <!-- Aba Gaps (trecho original) -->
-      <!-- Aba Gaps (trecho atualizado) -->
-<thead>
+            <thead>
   <tr>
     <th style="width: 100px;">Date</th>
     <th>User ID</th>
@@ -434,18 +441,135 @@ th {
     <th>Same Floor?</th>
   </tr>
 </thead>
-
-
             <tbody>
               <!-- Linhas dinâmicas geradas pela lógica -->
             </tbody>
           </table>
         </div>
 
+                <!-- Aba Dashboard -->
+        <div id="dashboardTabContent" style="display: none;">
+
+          <!-- 1) Summary Cards do Dashboard -->
+          <div class="dashboard-cards" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 0px;">
+            <div class="summary-card">
+              Total Users
+              <div class="summary-number" id="dashboardUserCount">0</div>
+            </div>
+            <div class="summary-card">
+              Total Picks
+              <div class="summary-number" id="dashboardTotalPicks">0</div>
+            </div>
+            <div class="summary-card">
+              Avg. Picks/Hora
+              <div class="summary-number" id="dashboardAvgPicksPerHour">0.00</div>
+            </div>
+            <div class="summary-card">
+              Avg. Performance
+              <div class="summary-number" id="dashboardAvgPerformance">0.00%</div>
+            </div>
+            <div class="summary-card">
+              Total Gaps
+              <div class="summary-number" id="dashboardTotalGaps">00:00:00</div>
+            </div>
+          </div>
+
+                    <!-- 2) Gráficos do Dashboard -->
+<div class="dashboard-charts" style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+
+  <!-- Gráfico de Pizza -->
+  <div style="flex: 1; min-width: 300px; margin-left: 100px;">
+    <canvas id="performancePieChart" style="max-width:550px; max-height:550px;"></canvas>
+  </div>
+
+  <!-- Gráfico de Barras + Labels -->
+  <div style="flex: 1; min-width: 300px; margin-top: 0px;">
+
+    <!-- 2.1) Painel de Labels do Bar Chart -->
+    <div class="dashboard-bar-labels" style="display: flex; justify-content: center; gap: 12px; margin-bottom: 8px;">
+      <div class="summary-card" style="margin-top: 0; padding: 6px 12px;">
+        Well Done:&nbsp;<span class="summary-number" id="countWellDone">0</span>
+      </div>
+      <div class="summary-card" style="margin-top: 0; padding: 6px 12px;">
+        Almost There:&nbsp;<span class="summary-number" id="countAlmostThere">0</span>
+      </div>
+      <div class="summary-card" style="margin-top: 0; padding: 6px 12px;">
+        Poor:&nbsp;<span class="summary-number" id="countPoor">0</span>
+      </div>
+      <div class="summary-card" style="margin-top: 0; padding: 6px 12px;">
+        No Activity:&nbsp;<span class="summary-number" id="countNoActivity">0</span>
+      </div>
+    </div>
+
+    <!-- Canvas do Gráfico de Barras -->
+    <canvas id="performanceBarChart"></canvas>
+  </div>
+
+</div>
+
+
+
+                     <!-- 3) Tabelas de Destaque -->
+          <div class="dashboard-tables" style="display: flex; gap: 20px; flex-wrap: wrap;">
+
+            <!-- Top 5 Performers -->
+            <div style="flex: 1; min-width: 200px;">
+              <h4>Top 5 Performers</h4>
+              <table id="topPerformersTable" class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Linhas serão inseridas via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Top 5 Low -->
+            <div style="flex: 1; min-width: 200px;">
+              <h4>Top 5 Low</h4>
+              <table id="topLowTable" class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Linhas serão inseridas via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Top 5 Em Gaps -->
+            <div style="flex: 1; min-width: 200px;">
+              <h4>Top 5 Em Gaps</h4>
+              <table id="topGapsTable" class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Total Gap Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Linhas serão inseridas via JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+
+
+        </div>
+
+
       </div> <!-- Fim content-area -->
     </div> <!-- Fim main-content -->
   </div> <!-- Fim container -->
-
   <!-- JavaScript da Lógica (Inalterado) -->
   <script>
     /* ======================================================
@@ -529,14 +653,23 @@ th {
      * Funções de Troca de Aba
      * ====================================================== */
     function showHomeTab() {
-      document.getElementById('homeTabContent').style.display = 'block';
-      document.getElementById('gapsTabContent').style.display = 'none';
-    }
+  document.getElementById('homeTabContent').style.display = 'block';
+  document.getElementById('gapsTabContent').style.display = 'none';
+  document.getElementById('dashboardTabContent').style.display = 'none';
+}
 
-    function showGapsTab() {
-      document.getElementById('homeTabContent').style.display = 'none';
-      document.getElementById('gapsTabContent').style.display = 'block';
-    }
+function showGapsTab() {
+  document.getElementById('homeTabContent').style.display = 'none';
+  document.getElementById('gapsTabContent').style.display = 'block';
+  document.getElementById('dashboardTabContent').style.display = 'none';
+}
+
+// ==== Novo: Função para a aba Dashboard ====
+function showDashboardTab() {
+  document.getElementById('homeTabContent').style.display = 'none';
+  document.getElementById('gapsTabContent').style.display = 'none';
+  document.getElementById('dashboardTabContent').style.display = 'block';
+}
 
     /* ======================================================
      * Atualização da Tabela Home
@@ -591,7 +724,7 @@ th {
   const row = document.createElement('tr');
   row.classList.add(gapObj.sameFloor ? 'gap-same-floor' : 'gap-cross-floor');
 
-   row.innerHTML = `
+  row.innerHTML = `
   <td>${stats.date || ''}</td>
   <td>${userId}</td>
   <td>${gapObj.locationIn || ''}</td>
@@ -684,20 +817,30 @@ th {
      * Função de Filtragem para a Aba Home
      * ====================================================== */
     function applyFilters(dataMap) {
-      const performanceFilter = document.getElementById('filterPerformance').value;
-      const userIdFilter = document.getElementById('filterUserId').value.toLowerCase();
-      const pickFilter = document.getElementById('filterPick').value;
-      const filtered = Object.entries(dataMap).filter(([userId, stats]) => {
-        const matchesPerformance = !performanceFilter || stats.performance.includes(performanceFilter);
-        const matchesUserId = !userIdFilter || userId.toLowerCase().includes(userIdFilter);
-        const pickVal = stats.hasMulti ? 'Multi' : 'Single';
-        const matchesPick = !pickFilter || pickVal === pickFilter;
-        return matchesPerformance && matchesUserId && matchesPick;
-      });
-      const filteredMap = Object.fromEntries(filtered);
-      updateTable(filteredMap);
-      updateStats(filteredMap);
-    }
+  const performanceFilter = document.getElementById('filterPerformance').value;
+  const userIdFilter    = document.getElementById('filterUserId').value.toLowerCase();
+  const pickFilter      = document.getElementById('filterPick').value;
+
+  const filtered = Object.entries(dataMap).filter(([userId, stats]) => {
+    const matchesPerformance = !performanceFilter || stats.performance.includes(performanceFilter);
+    const matchesUserId      = !userIdFilter    || userId.toLowerCase().includes(userIdFilter);
+    const pickVal            = stats.hasMulti  ? 'Multi' : 'Single';
+    const matchesPick        = !pickFilter      || pickVal === pickFilter;
+    return matchesPerformance && matchesUserId && matchesPick;
+  });
+
+  const filteredMap = Object.fromEntries(filtered);
+
+  // Home
+  updateTable(filteredMap);
+  updateStats(filteredMap);
+
+  // Dashboard
+  updateDashboard(filteredMap);
+  renderDashboardCharts(filteredMap);
+  renderDashboardTables(filteredMap);
+}
+
 
     /* ======================================================
      * Função para ajustar o tamanho da fonte nas células do XLSX
@@ -719,6 +862,7 @@ th {
     // Os botões Home e Gaps agora estão na top bar; os listeners abaixo garantem a alternância
     document.getElementById('homeTabBtn').addEventListener('click', showHomeTab);
     document.getElementById('gapsTabBtn').addEventListener('click', showGapsTab);
+    document.getElementById('dashboardTabBtn').addEventListener('click', showDashboardTab);
     // Eventos para os filtros (agora integrados na tabela)
     document.getElementById('filterPerformance').addEventListener('change', () => {
       const savedData = localStorage.getItem('onlinePickData');
@@ -742,16 +886,6 @@ th {
       }
     });
 
-    window.onload = function () {
-      const savedData = localStorage.getItem('onlinePickData');
-      if (savedData) {
-        const dataMap = JSON.parse(savedData);
-        updateTable(dataMap);
-        updateStats(dataMap);
-        updateGapsTable(dataMap);
-      }
-    };
-
     function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -761,6 +895,40 @@ th {
       };
       reader.readAsText(file);
     }
+// Popula dinamicamente os filtros de Performance e Pick
+function populateFilterOptions(dataMap) {
+  // Performance
+  const perfSelect = document.getElementById('filterPerformance');
+  perfSelect.innerHTML = '<option value="">All</option>';
+  const perfSet = new Set(
+    Object.values(dataMap).map(s => {
+      if (s.performance.includes('Well Done'))   return 'Well Done';
+      if (s.performance.includes('Almost There')) return 'Almost There';
+      if (s.performance.includes('Poor'))         return 'Poor';
+      return 'No Activity';
+    })
+  );
+  perfSet.forEach(label => {
+    const opt = document.createElement('option');
+    opt.value    = label;
+    opt.textContent = label;
+    perfSelect.appendChild(opt);
+  });
+
+  // Pick (Single vs Multi)
+  const pickSelect = document.getElementById('filterPick');
+  pickSelect.innerHTML = '<option value="">All</option>';
+  const pickSet = new Set(
+    Object.values(dataMap).map(s => s.hasMulti ? 'Multi' : 'Single')
+  );
+  pickSet.forEach(label => {
+    const opt = document.createElement('option');
+    opt.value    = label;
+    opt.textContent = label;
+    pickSelect.appendChild(opt);
+  });
+}
+
 
     function processCSV(csvText) {
       try {
@@ -907,13 +1075,238 @@ if (totalHoursDecimal <= 0 || performance === 0) {
   });
 
         localStorage.setItem('onlinePickData', JSON.stringify(dataMap));
+        populateFilterOptions(dataMap);
+
         updateTable(dataMap);
         updateStats(dataMap);
         updateGapsTable(dataMap);
+        updateDashboard(dataMap);
+        renderDashboardCharts(dataMap);
+        renderDashboardTables(dataMap);
+
       } catch (error) {
         console.error("Error processing CSV:", error);
       }
     }
+
+// ==== Novo: popula as Tabelas de Destaque no Dashboard ====
+function renderDashboardTables(dataMap) {
+  // Monta array com performance numérica e gap em segundos
+  const users = Object.entries(dataMap).map(([userId, s]) => {
+    const hours = timeToSeconds(s.totalHours) / 3600;
+    const perfNum = hours > 0 ? (s.qty / (hours * trackerTarget)) * 100 : 0;
+    return {
+      userId,
+      perfNum,
+      gapSec: s.totalGaps * 3600
+    };
+  });
+
+  // Top 5 Performers (maior performance)
+  const topPerformers = [...users]
+    .sort((a, b) => b.perfNum - a.perfNum)
+    .slice(0, 5);
+
+  // Top 5 Low (menor performance)
+  const topLow = [...users]
+    .sort((a, b) => a.perfNum - b.perfNum)
+    .slice(0, 5);
+
+  // Top 5 Em Gaps (maior gap)
+  const topGaps = [...users]
+    .sort((a, b) => b.gapSec - a.gapSec)
+    .slice(0, 5);
+
+  // Helper para preencher tabela
+  function fillTable(tableId, rows, cols) {
+    const tbody = document.getElementById(tableId).querySelector('tbody');
+    tbody.innerHTML = '';
+    rows.forEach(item => {
+      const tr = document.createElement('tr');
+      cols.forEach(col => {
+        const td = document.createElement('td');
+        td.textContent = item[col];
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Preenche Top Performers
+  fillTable('topPerformersTable',
+    topPerformers.map(u => ({ userId: u.userId, Performance: u.perfNum.toFixed(2) + '%' })),
+    ['userId', 'Performance']);
+
+  // Preenche Top Low
+  fillTable('topLowTable',
+    topLow.map(u => ({ userId: u.userId, Performance: u.perfNum.toFixed(2) + '%' })),
+    ['userId', 'Performance']);
+
+  // Preenche Top Gaps
+  fillTable('topGapsTable',
+    topGaps.map(u => ({ userId: u.userId, 'Total Gap Time': formatDecimalToTime(u.gapSec / 3600) })),
+    ['userId', 'Total Gap Time']);
+}
+// ==== Novo: popula os cards do Dashboard ====
+function updateDashboard(dataMap) {
+  const totalUsers = Object.keys(dataMap).length;
+  const totalPicks = Object.values(dataMap).reduce((sum, s) => sum + s.qty, 0);
+  const sumWorkedHours = Object.values(dataMap)
+    .reduce((sum, s) => sum + (timeToSeconds(s.totalHours) / 3600), 0);
+  const sumGapsSec = Object.values(dataMap)
+    .reduce((sum, s) => sum + s.totalGaps * 3600, 0);
+
+  // Média de picks por hora
+  const avgPicksPerHour = sumWorkedHours > 0
+    ? (totalPicks / sumWorkedHours).toFixed(0)
+    : "0.00";
+
+  // Média de performance
+  const sumPerf = Object.values(dataMap)
+    .reduce((sum, s) => {
+      const hours = timeToSeconds(s.totalHours) / 3600;
+      return sum + (hours > 0 ? (s.qty / (hours * trackerTarget)) * 100 : 0);
+    }, 0);
+  const avgPerf = totalUsers > 0
+    ? (sumPerf / totalUsers).toFixed(2) + "%"
+    : "0.00%";
+
+  // Formata gap total em HH:MM:SS
+  const totalGapsTime = formatDecimalToTime(sumGapsSec / 3600);
+
+  document.getElementById('dashboardUserCount').textContent = totalUsers;
+  document.getElementById('dashboardTotalPicks').textContent = totalPicks;
+  document.getElementById('dashboardAvgPicksPerHour').textContent = avgPicksPerHour;
+  document.getElementById('dashboardAvgPerformance').textContent = avgPerf;
+  document.getElementById('dashboardTotalGaps').textContent = totalGapsTime;
+}
+// ==== Novo: desenha os gráficos do Dashboard com Chart.js ====
+function renderDashboardCharts(dataMap) {
+  // 1) Conta usuários por categoria de performance
+  const counts = {
+    'Well Done': 0,
+    'Almost There': 0,
+    'Poor': 0,
+    'No Activity': 0
+  };
+  Object.values(dataMap).forEach(s => {
+    if (s.performance.includes('Well Done'))       counts['Well Done']++;
+    else if (s.performance.includes('Almost There')) counts['Almost There']++;
+    else if (s.performance.includes('Poor'))         counts['Poor']++;
+    else                                            counts['No Activity']++;
+  });
+
+  // ► Preenche os labels acima do Bar Chart
+  document.getElementById('countWellDone').textContent      = counts['Well Done'];
+  document.getElementById('countAlmostThere').textContent = counts['Almost There'];
+  document.getElementById('countPoor').textContent         = counts['Poor'];
+  document.getElementById('countNoActivity').textContent   = counts['No Activity'];
+
+  // Monta arrays para os gráficos
+  const labels     = Object.keys(counts);
+  const dataCounts = labels.map(l => counts[l]);
+
+  // 2) Gráfico de Pizza (percentuais)
+  const pieCtx = document.getElementById('performancePieChart').getContext('2d');
+  if (window.performancePie) window.performancePie.destroy();
+  window.performancePie = new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data: dataCounts,
+        backgroundColor: [
+          '#28a745', // Well Done
+          '#ff8c00', // Almost There
+          '#dc3545', // Poor
+          '#6c757d'  // No Activity
+        ]
+      }]
+    },
+    options: {
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const total = ctx.dataset.data.reduce((sum, v) => sum + v, 0);
+              const pct   = total ? (ctx.raw / total * 100).toFixed(2) : '0.00';
+              return `${ctx.label}: ${pct}%`;
+            }
+          }
+        },
+        legend: {
+          position: 'top',
+          labels: {
+            font:    { size: 12 },
+            boxWidth: 12,
+            padding:  10,
+            maxWidth: 1000,
+            generateLabels: function(chart) {
+              const d = chart.data, total = d.datasets[0].data.reduce((s,v)=>s+v,0);
+              return d.labels.map((lab,i)=>({
+                text:     `${lab} (${ total ? (d.datasets[0].data[i]/total*100).toFixed(2) : '0.00' }%)`,
+                fillStyle:d.datasets[0].backgroundColor[i],
+                hidden:   false,
+                index:    i
+              }));
+            }
+          }
+        }
+      }
+    }
+  });
+
+
+  // 3) Gráfico de Barras (contagem por categoria)
+const barCtx = document.getElementById('performanceBarChart').getContext('2d');
+if (window.performanceBar) window.performanceBar.destroy();
+window.performanceBar = new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Usuários',
+      data: dataCounts,
+      backgroundColor: [
+        '#28a745', // Well Done
+        '#ff8c00', // Almost There
+        '#dc3545', // Poor
+        '#6c757d'  // No Activity
+      ]
+    }]
+  },
+  options: {
+    scales: {
+      x: { stacked: true },
+      y: { stacked: true, beginAtZero: true }
+    }
+  }
+});
+}
+
+// ==== Garante dashboard no load inicial (único window.onload) ====
+window.onload = function () {
+  const savedData = localStorage.getItem('onlinePickData');
+  if (!savedData) return;
+
+  const dataMap = JSON.parse(savedData);
+
+  // 1) popula os filtros
+  populateFilterOptions(dataMap);
+
+  // 2) atualiza a Home
+  updateTable(dataMap);
+  updateStats(dataMap);
+
+  // 3) atualiza a aba Gaps
+  updateGapsTable(dataMap);
+
+  // 4) atualiza o Dashboard
+  updateDashboard(dataMap);
+  renderDashboardCharts(dataMap);
+  renderDashboardTables(dataMap);
+};
+
 
     function downloadExcelReport() {
       const savedData = localStorage.getItem('onlinePickData');
@@ -963,7 +1356,6 @@ if (totalHoursDecimal <= 0 || performance === 0) {
         }
       });
       
-      
 // 1) Atualiza o cabeçalho para incluir "Same Floor?"
 const gapsHeader = [
   'Date',
@@ -1000,7 +1392,6 @@ Object.entries(dataMap).forEach(([userId, stats]) => {
     });
   }
 });
-
 
       const workbook = XLSX.utils.book_new();
       const wsAll = XLSX.utils.aoa_to_sheet(allData);
@@ -1054,98 +1445,5 @@ Object.entries(dataMap).forEach(([userId, stats]) => {
       });
     })();
   </script>
-<!-- SDK clássico: anexa em window.supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-  // 1) Inicializa o cliente e expõe no window
-  const SB_URL = 'https://rairvmuszzwnjicglzbp.supabase.co';
-  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhaXJ2bXVzenp3bmppY2dsemJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMDcxNTYsImV4cCI6MjA3MjU4MzE1Nn0.zLc8ELkBmxLwzfqCxYqt7znB_n6znv4KIzlYfa3TMCI';
- window.sb = supabase.createClient(SB_URL, SB_ANON);
-
-  // 2) Helpers rápidos (usam tuas funções já existentes)
-  function toHHMMSSfromSeconds(sec){ return formatDecimalToTime(sec/3600); }
-
-  function yyyymmddToDdMmYy(d){ if(!d)return''; const [y,m,dd]=String(d).split('-'); return `${dd}/${m}/${y}`; }
-
-  // 3) Carrega do Supabase e alimenta teu dataMap
-  async function loadFromSupabase(){
-    try {
-      // Summary
-      const { data: summary, error: e1 } = await window.sb
-        .from('online_picking_summary').select('*').order('user_id', { ascending: true });
-      if (e1) throw e1;
-
-      // Gaps
-      const { data: gaps, error: e2 } = await window.sb
-        .from('online_picking_gaps').select('*')
-        .order('user_id', { ascending: true }).order('gap_index', { ascending: true });
-      if (e2) throw e2;
-
-      // Indexa gaps por user
-      const gapsByUser = {};
-      for (const g of gaps || []) {
-        const u = g.user_id;
-        (gapsByUser[u] ||= []).push({
-          gapSec: g.gap_seconds || 0,
-          start: g.start_time || '',
-          end:   g.end_time || '',
-          locationIn:  g.location_in || '',
-          locationOut: g.location_out || '',
-          sameFloor: !!g.same_floor
-        });
-      }
-
-      // Monta dataMap no formato que o teu código já usa
-      const dataMap = {};
-      for (const s of summary || []) {
-        const userId = s.user_id;
-        const totalHoursDec = (s.total_hours_seconds || 0) / 3600;
-        const perfPct = Number(s.performance_pct || 0);
-
-        let performanceClass = 'performance-no-activity';
-        if (totalHoursDec > 0) {
-          if (perfPct >= 100) performanceClass = 'performance-well-done';
-          else if (perfPct >= 60) performanceClass = 'performance-almost-there';
-          else if (perfPct > 0)   performanceClass = 'performance-poor';
-        }
-
-        dataMap[userId] = {
-          qty: s.qty || 0,
-          inTime: s.in_time || null,
-          outTime: s.out_time || null,
-          totalHours: toHHMMSSfromSeconds(s.total_hours_seconds || 0),
-          performance: s.performance_label || `Poor (${perfPct.toFixed(2)}%)`,
-          performanceClass,
-          totalGaps: (s.total_gaps_seconds || 0) / 3600,
-          nGaps: s.n_gaps || 0,
-          date: yyyymmddToDdMmYy(s.date),
-          txnCount: s.txn_count || 0,
-          locationIn: '',
-          locationOut: '',
-          gapsList: gapsByUser[userId] || [],
-          hasMulti: (s.pick === 'Multi')
-        };
-      }
-
-      // Persiste e atualiza tua UI
-      localStorage.setItem('onlinePickData', JSON.stringify(dataMap));
-      if (window.updateTable && window.updateStats && window.updateGapsTable) {
-        window.updateTable(dataMap);
-        window.updateStats(dataMap);
-        window.updateGapsTable(dataMap);
-      }
-      return dataMap;
-    } catch (err) {
-      console.error('Falha ao carregar do Supabase:', err);
-      return null;
-    }
-  }
-
-  // 4) Expõe e chama
-  window.loadFromSupabase = loadFromSupabase;
-  loadFromSupabase();
-</script>
-
 </body>
 </html>
