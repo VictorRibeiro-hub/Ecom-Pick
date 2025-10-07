@@ -339,9 +339,10 @@ th {
   <div class="summary-number" id="prodHoursLabel">00:00:00</div>
 </div>
 <div class="summary-card">
-  Difference
+  Total Gaps
   <div class="summary-number" id="differenceLabel">00:00:00</div>
 </div>
+
 
 <!-- Dual card: Total Picked & Avg. Picked -->
 <div class="summary-card dual">
@@ -773,19 +774,27 @@ function showDashboardTab() {
     totalPicked += stats.qty;
   });
 
-  // Cálculo da difference entre horas trabalhadas e horas produtivas
-  const difference = sumWorkedHours - sumProdHours;
+  // Cálculo da difference entre horas trabalhadas e horas produtivas (mantido p/ User Lost)
+const difference = sumWorkedHours - sumProdHours;
 
-  // Atualiza labels existentes
-  document.getElementById('twhLabel').textContent = formatDecimalToTime(sumWorkedHours);
-  document.getElementById('prodHoursLabel').textContent = formatDecimalToTime(sumProdHours);
-  document.getElementById('differenceLabel').textContent = formatDecimalToTime(difference);
+// Soma total de Gaps (em horas) de todos os usuários
+let sumGapsHours = 0;
+Object.values(dataMap).forEach(stats => {
+  sumGapsHours += (stats.totalGaps || 0); // totalGaps já está em horas
+});
 
-  // Total de usuários e User ID Lost
-  const totalUsers = Object.keys(dataMap).length;
-  document.getElementById('userCountLabel').textContent = totalUsers;
-  const lostDecimal = difference / 7.5;
-  document.getElementById('userLostLabel').textContent = lostDecimal.toFixed(2);
+// Atualiza labels existentes
+document.getElementById('twhLabel').textContent = formatDecimalToTime(sumWorkedHours);
+document.getElementById('prodHoursLabel').textContent = formatDecimalToTime(sumProdHours);
+// Agora o card mostra TOTAL GAPS em vez de Difference
+document.getElementById('differenceLabel').textContent = formatDecimalToTime(sumGapsHours);
+
+// Total de usuários e User ID Lost (mantém a lógica atual baseada em 'difference')
+const totalUsers = Object.keys(dataMap).length;
+document.getElementById('userCountLabel').textContent = totalUsers;
+const lostDecimal = difference / 7.5;
+document.getElementById('userLostLabel').textContent = lostDecimal.toFixed(2);
+
 
   // ===== Novos cálculos =====
 
